@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E0B08">
+<title>Sushi Saudi — суши и роллы в Медине с доставкой</title>
+<meta name="description" content="Суши, роллы, сеты и моти в Медине. Готовим после заказа, доставляем по всему городу. Заказ в WhatsApp: отдельные номера для братьев и для сестёр.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+
+<!-- Критический CSS заставки: она должна быть видна с первого кадра,
+     ещё до загрузки style.css — иначе на телефоне мелькает контент. -->
+<style>
+  html, body { margin: 0; background: #0E0B08; }
+  body.is-locked { overflow: hidden; height: 100%; }
+  #intro {
+    position: fixed; inset: 0; z-index: 999;
+    display: grid; place-items: center; overflow: hidden;
+    background: #0E0B08; height: 100vh; height: 100svh;
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  #intro .intro__panel { position: absolute; top: 0; bottom: 0; background: #0E0B08; }
+  #intro .intro__panel--l { left: 0; right: 50%; }
+  #intro .intro__panel--r { left: 50%; right: 0; }
+  #intro .intro__bg { position: absolute; inset: 0; overflow: hidden; }
+  #intro .intro__bg img { width: 100%; height: 100%; object-fit: cover; }
+  #intro .intro__stage {
+    position: relative; z-index: 2; display: grid; place-items: center;
+    gap: 20px; text-align: center; padding: 0 24px;
+  }
+  #intro .intro__mark { width: min(46vw, 190px); height: auto; }
+  #intro .intro__title {
+    margin: 0; line-height: 1; color: #F5EDE1; font-weight: 800;
+    font-size: clamp(2.1rem, 9vw, 3.6rem); letter-spacing: .1em;
+  }
+  #intro .intro__title span { display: inline-block; opacity: 0; }
+  #intro .intro__sub { margin: 0; opacity: 0; }
+  #intro .intro__bar { width: min(58vw, 240px); height: 2px; opacity: 0; }
+  #intro .intro__skip { opacity: 0; }
+</style>
+
+<link rel="preload" href="assets/img/intro-bg.jpg" as="image" fetchpriority="high">
+<link rel="preload" href="assets/fonts/playfair-display-800-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/manrope-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="is-locked">
+
+<!-- ============================================================
+     ЗАСТАВКА: круг энсо рисуется кистью, ролл с короной,
+     палочки, разлёт кунжута — затем экран расходится как сёдзи
+     ============================================================ -->
+<div id="intro">
+  <div class="intro__bg">
+    <img src="assets/img/intro-bg.jpg" alt="" fetchpriority="high" decoding="async">
+  </div>
+  <div class="intro__panel intro__panel--l"></div>
+  <div class="intro__panel intro__panel--r"></div>
+
+  <div class="intro__stage">
+    <svg class="intro__mark" viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <linearGradient id="introGold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#E8CE8B"/>
+          <stop offset="50%" stop-color="#C9A24A"/>
+          <stop offset="100%" stop-color="#8C6B22"/>
+        </linearGradient>
+      </defs>
+      <!-- энсо: круг одним мазком -->
+      <circle class="intro__ring" cx="50" cy="50" r="43"/>
+      <!-- палочки -->
+      <g stroke="url(#introGold)" stroke-width="2.6" stroke-linecap="round">
+        <line class="intro__stick intro__stick--1" x1="58" y1="62" x2="86" y2="34"/>
+        <line class="intro__stick intro__stick--2" x1="62" y1="66" x2="90" y2="38"/>
+      </g>
+      <!-- ролл: нори, рис, начинка -->
+      <g class="intro__roll">
+        <rect x="30" y="40" width="40" height="26" rx="7" fill="none" stroke="url(#introGold)" stroke-width="2.6"/>
+        <ellipse cx="50" cy="53" rx="9" ry="7" fill="url(#introGold)" opacity=".55"/>
+        <path d="M36 47c3-2 7-2 10 0M54 59c3-2 7-2 10 0" stroke="url(#introGold)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      </g>
+      <!-- корона -->
+      <g class="intro__crown" fill="url(#introGold)">
+        <path d="M34 34l5-9 5 6 6-9 6 9 5-6 5 9z"/>
+        <rect x="34" y="35" width="32" height="3" rx="1.5"/>
+      </g>
+    </svg>
+
+    <h1 class="intro__title"><span>S</span><span>U</span><span>S</span><span>H</span><span>I</span><span>&nbsp;</span><span>S</span><span>A</span><span>U</span><span>D</span><span>I</span></h1>
+    <p class="intro__sub">Медина · Premium sushi</p>
+    <div class="intro__bar"><i></i></div>
+  </div>
+
+  <button class="intro__skip" type="button">Пропустить</button>
+</div>
+
+<script>
+/* Заставка стартует только когда страницу реально видно на экране.
+   Так на телефоне она не «сгорает» в фоне: если ссылку открыли из
+   мессенджера и свернули браузер, анимация подождёт возвращения,
+   а отсчёт времени показа начнётся с первого нарисованного кадра. */
+(function () {
+  var intro = document.getElementById('intro');
+  if (!intro) return;
+
+  // Заставка играет при каждой загрузке страницы. Тем, кто в системе просил
+  // ограничить анимации (на телефонах это часто включено вместе с
+  // энергосбережением), показываем её же, но без движения — просто проявление.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    intro.classList.add('is-calm');
+  }
+
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    window.__introStart = performance.now();
+    intro.classList.add('is-playing');
+    window.dispatchEvent(new Event('intro-start'));
+  }
+
+  function armWhenVisible() {
+    if (document.visibilityState !== 'visible') return;
+    // два кадра — гарантия, что первый кадр заставки уже на экране
+    requestAnimationFrame(function () { requestAnimationFrame(start); });
+    // страховка, если rAF по какой-то причине не придёт
+    setTimeout(start, 400);
+  }
+
+  document.addEventListener('visibilitychange', armWhenVisible);
+  armWhenVisible();
+
+  // Если вкладку так и не открыли (или браузер держит её «скрытой»),
+  // через 10 секунд просто убираем заставку — сайт должен быть доступен.
+  setTimeout(function () {
+    if (started) return;
+    intro.dataset.skipped = '1';
+    intro.style.display = 'none';
+    document.body.classList.remove('is-locked');
+  }, 10000);
+})();
+</script>
+
+<!-- ============================================================ ШАПКА -->
+<header class="header">
+  <div class="wrap header__inner">
+    <a class="logo" href="#top" aria-label="Sushi Saudi — на главную">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E8CE8B"/><stop offset="100%" stop-color="#B98F35"/>
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="52" r="42" fill="none" stroke="url(#logoGold)" stroke-width="3" stroke-dasharray="230 40" stroke-linecap="round"/>
+        <path d="M34 22l5-9 5 6 6-9 6 9 5-6 5 9z" fill="url(#logoGold)"/>
+        <rect x="32" y="42" width="36" height="24" rx="6" fill="none" stroke="url(#logoGold)" stroke-width="3"/>
+        <ellipse cx="50" cy="54" rx="8" ry="6" fill="url(#logoGold)" opacity=".6"/>
+      </svg>
+      <span class="logo__text">
+        <b class="logo__name">SUSHI</b>
+        <span class="logo__sub">Saudi · Медина</span>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <a href="#menu">Меню</a>
+      <a href="#order">Заказ</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#photos">Фото</a>
+      <a href="#delivery">Доставка</a>
+    </nav>
+
+    <div class="header__actions">
+      <button class="cart-btn" data-open-cart type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2.6l2.4 12.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>
+        <span class="cart-btn__label">Корзина</span>
+        <span class="cart-btn__count">0</span>
+      </button>
+      <button class="burger" id="burger" type="button" aria-label="Меню навигации">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============================================================ HERO -->
+  <section class="hero">
+    <div class="hero__glow"></div>
+    <div class="hero__waves motif-seigaiha"></div>
+
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <span class="eyebrow">بسم الله · Медина</span>
+        <h1 class="hero__title">Суши, которые готовят <em>с ихсаном</em></h1>
+        <p class="hero__lead">
+          Роллы, сеты и моти собираем <b>после вашего заказа</b> — поэтому они приезжают
+          тёплыми и сочными. Только халяль-продукты, доставка по всей Медине
+          и самовывоз.
+        </p>
+
+        <div class="hero__cta">
+          <a class="btn btn--gold" href="#menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+            Смотреть меню
+          </a>
+          <a class="btn btn--ghost" href="#order">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+            Заказать сейчас
+          </a>
+        </div>
+
+        <div class="hero__badges">
+          <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 8.9l6-.8z"/></svg> 100% халяль</span>
+          <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V7.2A1.2 1.2 0 0 1 4.2 6h9.3v10.5"/><path d="M13.5 9.5h3.9l3.1 3.4v3.6h-2"/><circle cx="7.4" cy="17.6" r="1.9"/><circle cx="16.6" cy="17.6" r="1.9"/></svg> Доставка по Медине</span>
+          <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.4V12l3 2"/></svg> Готовим на заказ</span>
+        </div>
+      </div>
+
+      <div class="hero__plate">
+        <div class="plate">
+          <img src="assets/img/hero-main.jpg" alt="Сет роллов Sushi Saudi" fetchpriority="high">
+          <svg class="plate__ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48"/></svg>
+        </div>
+        <div class="plate__tag plate__tag--1">
+          <b>Crispy Unagi</b><span>угорь · 35 SAR</span>
+        </div>
+        <div class="plate__tag plate__tag--2">
+          <b>691 подписчик</b><span>в Telegram-канале</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__scroll"><span>вниз</span><i></i></div>
+  </section>
+
+  <!-- ============================================================ БЕГУЩАЯ СТРОКА -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <span>Свежие роллы <i>۞</i> Сеты на компанию <i>۞</i> Моти <i>۞</i> Запечённые мидии <i>۞</i> Доставка по Медине <i>۞</i> Халяль <i>۞</i></span>
+      <span>Свежие роллы <i>۞</i> Сеты на компанию <i>۞</i> Моти <i>۞</i> Запечённые мидии <i>۞</i> Доставка по Медине <i>۞</i> Халяль <i>۞</i></span>
+    </div>
+  </div>
+
+  <!-- ============================================================ ХИТЫ -->
+  <section class="section section--ink">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">хиты канала</span>
+        <h2 class="section__title">Что заказывают чаще всего</h2>
+        <div class="divider"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.6l3.1 3.1h4.2v4.2L22.4 12l-3.1 3.1v4.2h-4.2L12 22.4l-3.1-3.1H4.7v-4.2L1.6 12l3.1-3.1V4.7h4.2z" opacity=".45"/><path d="M12 5.4l2.1 2.1h2.4v2.4l2.1 2.1-2.1 2.1v2.4h-2.4L12 18.6l-2.1-2.1H7.5v-2.4L5.4 12l2.1-2.1V7.5h2.4z"/></svg></div>
+        <p class="section__lead">Фирменные позиции из нашего Telegram-канала — с реальными составами и ценами.</p>
+      </div>
+      <div class="promos" id="promos"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ПРЕИМУЩЕСТВА -->
+  <section class="section section--dark">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <h2 class="section__title">Почему заказывают у нас</h2>
+      </div>
+      <div class="features" id="features"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ МЕНЮ -->
+  <section class="section section--cream motif-asanoha" id="menu">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">меню</span>
+        <h2 class="section__title">Соберите свой заказ</h2>
+        <p class="section__lead">Добавляйте позиции в корзину — в конце сайт сам соберёт сообщение
+          и откроет WhatsApp нужного номера. Никаких форм и регистрации.</p>
+      </div>
+
+      <div class="menu-tabs" id="menuTabs"></div>
+      <div class="menu-grid" id="menuGrid"></div>
+
+      <p class="menu-note reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.6"/></svg>
+        Актуальный стоп-лист и новинки — в канале <a data-tg href="#" target="_blank" rel="noopener"><b>@SUSHI_SAUDI</b></a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ ЗАКАЗ: БРАТЬЯ И СЁСТРЫ -->
+  <section class="section section--ink" id="order">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">оформление</span>
+        <h2 class="section__title">Заказ для братьев и для сестёр</h2>
+        <p class="section__lead">Два отдельных номера, чтобы каждому было удобно.
+          Напишите в WhatsApp — ответим и подтвердим заказ.</p>
+      </div>
+
+      <div class="order-grid">
+        <article class="order-card order-card--brothers reveal">
+          <span class="order-card__label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.4"/><path d="M4.8 20.5c0-3.6 3.2-6.2 7.2-6.2s7.2 2.6 7.2 6.2"/></svg>
+            Для братьев
+          </span>
+          <h3>Заказ у брата</h3>
+          <p>Приём заказов, доставка и самовывоз. Пишите в любое время — ответим, как только освободимся у плиты.</p>
+          <b class="order-card__phone" data-phone="brothers">+966 54 142 6439</b>
+          <a class="btn btn--wa btn--block" data-wa="brothers" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+            Написать в WhatsApp
+          </a>
+        </article>
+
+        <article class="order-card order-card--sisters reveal reveal-d1">
+          <span class="order-card__label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c-3 0-5 2.2-5 5.2 0 2.2.5 4 1.2 5.6h7.6c.7-1.6 1.2-3.4 1.2-5.6 0-3-2-5.2-5-5.2z"/><path d="M9.4 14c-.4 3 .3 5.2 2.6 6.8 2.3-1.6 3-3.8 2.6-6.8"/></svg>
+            Для сестёр
+          </span>
+          <h3>Заказ у сестры</h3>
+          <p>Отдельная линия для сестёр: заказ примет и оформит сестра. Так же — доставка по городу и самовывоз.</p>
+          <b class="order-card__phone" data-phone="sisters">+966 57 117 8535</b>
+          <a class="btn btn--wa btn--block" data-wa="sisters" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+            Написать в WhatsApp
+          </a>
+        </article>
+      </div>
+
+      <!-- Telegram-бот: заглушка -->
+      <div class="bot-card reveal">
+        <div class="bot-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7.5" width="16" height="12" rx="3.4"/><path d="M12 7.5V4M9.4 13h.02M14.6 13h.02M9 16.6h6"/><circle cx="12" cy="3" r="1.2"/></svg>
+        </div>
+        <div class="bot-card__body">
+          <h3>Заказ через Telegram-бот <span class="chip chip--live"><i></i> работает</span></h3>
+          <p>В боте — меню с фотографиями, корзина и оформление заказа прямо в Telegram.
+             Откроется в приложении, регистрация не нужна.</p>
+        </div>
+        <a class="btn btn--gold" data-bot-link href="#" target="_blank" rel="noopener">Открыть бот</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ОТЗЫВЫ -->
+  <section class="section section--reviews" id="reviews">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">отзывы</span>
+        <h2 class="section__title">Что пишут после заказа</h2>
+        <p class="section__lead">Настоящие сообщения клиентов из WhatsApp — их публикует сам канал.</p>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="reviews-wrap" id="reviewsWrap">
+        <div class="reviews-grid" id="reviewsGrid"></div>
+      </div>
+      <div class="reviews-more" id="reviewsMore"></div>
+
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ГАЛЕРЕЯ -->
+  <section class="section section--dark" id="photos">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">фото</span>
+        <h2 class="section__title">Как выглядят наши заказы</h2>
+        <p class="section__lead">Кадры из Telegram-канала — снято клиентами и нами, без ретуши.</p>
+      </div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ДОСТАВКА И КАРТА -->
+  <section class="section section--paper" id="delivery">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <span class="section__hand">доставка</span>
+        <h2 class="section__title">Возим по всей Медине</h2>
+      </div>
+
+      <div class="delivery-grid">
+        <div class="reveal">
+          <ul class="zones" id="zones"></ul>
+          <p class="note" id="deliveryNote">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.6"/></svg>
+            <span></span>
+          </p>
+        </div>
+
+        <div class="map-card reveal reveal-d1">
+          <iframe id="map" title="Карта доставки по Медине" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="map-card__badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            <div>
+              <b>Точка самовывоза</b>
+              <span>Медина · <a id="mapLink" href="#" target="_blank" rel="noopener">открыть в Google Maps</a></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ВОПРОСЫ -->
+  <section class="section section--dark">
+    <div class="wrap">
+      <div class="section__head reveal">
+        <h2 class="section__title">Частые вопросы</h2>
+      </div>
+      <div class="faq" id="faq"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ФИНАЛЬНЫЙ ПРИЗЫВ -->
+  <section class="section cta-band">
+    <div class="cta-band__bg" style="background-image:url('assets/img/band-1.jpg')"></div>
+    <div class="wrap reveal">
+      <h2>Проголодались? Соберите заказ</h2>
+      <p>Добавьте роллы в корзину — сообщение сформируется само. Или напишите напрямую в WhatsApp.</p>
+      <div class="cta-band__btns">
+        <button class="btn btn--gold" data-open-cart type="button">Открыть корзину</button>
+        <a class="btn btn--ghost" href="#menu">К меню</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================================================ ФУТЕР -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div class="footer__about">
+        <a class="logo" href="#top">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="52" r="42" fill="none" stroke="url(#logoGold)" stroke-width="3" stroke-dasharray="230 40" stroke-linecap="round"/>
+            <path d="M34 22l5-9 5 6 6-9 6 9 5-6 5 9z" fill="url(#logoGold)"/>
+            <rect x="32" y="42" width="36" height="24" rx="6" fill="none" stroke="url(#logoGold)" stroke-width="3"/>
+          </svg>
+          <span class="logo__text">
+            <b class="logo__name">SUSHI</b>
+            <span class="logo__sub">Saudi · Медина</span>
+          </span>
+        </a>
+        <p>Суши, роллы, сеты и моти в Медине. Готовим на заказ из халяль-продуктов,
+           доставляем по городу. Заказы принимаем в WhatsApp.</p>
+      </div>
+
+      <div>
+        <h4>Разделы</h4>
+        <ul>
+          <li><a href="#menu">Меню</a></li>
+          <li><a href="#order">Заказ</a></li>
+          <li><a href="#reviews">Отзывы</a></li>
+          <li><a href="#photos">Фото</a></li>
+          <li><a href="#delivery">Доставка</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Заказ</h4>
+        <ul>
+          <li><a data-wa="brothers" href="#" target="_blank" rel="noopener">Для братьев · <span data-phone="brothers"></span></a></li>
+          <li><a data-wa="sisters" href="#" target="_blank" rel="noopener">Для сестёр · <span data-phone="sisters"></span></a></li>
+          <li><a data-tg href="#" target="_blank" rel="noopener">Telegram-канал</a></li>
+          <li><a data-bot-link href="#" target="_blank" rel="noopener">Telegram-бот</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Мы в сети</h4>
+        <div class="socials">
+          <a data-tg href="#" target="_blank" rel="noopener" aria-label="Telegram-канал">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6l-3.02 14.25c-.23 1.01-.83 1.26-1.68.78l-4.64-3.42-2.24 2.16c-.25.25-.46.46-.94.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19L7.13 12.6 2.55 11.17c-1-.31-1.01-1 .21-1.48L20.66 3.1c.83-.3 1.55.2 1.28 1.5z"/></svg>
+          </a>
+          <a data-wa="brothers" href="#" target="_blank" rel="noopener" aria-label="WhatsApp для братьев">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+          </a>
+          <a data-wa="sisters" href="#" target="_blank" rel="noopener" aria-label="WhatsApp для сестёр">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Sushi Saudi · Медина</span>
+      <span>Сайт не собирает персональные данные — заказ уходит прямо в WhatsApp</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================ КОРЗИНА -->
+<div class="overlay" id="overlay"></div>
+
+<aside class="cart" id="cart" aria-label="Корзина">
+  <div class="cart__head">
+    <h3>Ваш заказ</h3>
+    <button class="icon-btn" data-close-cart type="button" aria-label="Закрыть корзину">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="cart__list" id="cartList"></div>
+
+  <div class="cart__foot" id="cartFoot">
+    <div class="cart__total"><span>Итого</span><b id="cartTotal">0</b></div>
+    <p class="cart__choose">Кому отправить заказ?</p>
+    <div class="cart__btns">
+      <!-- именно ссылки, а не кнопки: window.open из скрипта режет
+           блокировщик всплывающих окон, а переход по ссылке — нет -->
+      <a class="btn btn--wa" data-order="brothers" href="#" target="_blank" rel="noopener">Брату</a>
+      <a class="btn btn--sisters" data-order="sisters" href="#" target="_blank" rel="noopener">Сестре</a>
+    </div>
+    <p class="cart__hint">Откроется WhatsApp с готовым списком — останется нажать «отправить».
+      Мы не сохраняем ваши данные.</p>
+    <button class="cart__clear" data-clear-cart type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7M6.4 7l.8 12a1.8 1.8 0 0 0 1.8 1.7h6a1.8 1.8 0 0 0 1.8-1.7l.8-12M10.4 11v6M13.6 11v6"/></svg>
+      <span data-clear-label>Очистить корзину</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ============================================================ ЛАЙТБОКС -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox__close" data-lb-close type="button" aria-label="Закрыть">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <button class="lightbox__nav lightbox__nav--prev" data-lb-prev type="button" aria-label="Предыдущее фото">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <figure class="lightbox__figure">
+    <img id="lightboxImg" src="" alt="">
+    <figcaption id="lightboxCaption"></figcaption>
+  </figure>
+  <button class="lightbox__nav lightbox__nav--next" data-lb-next type="button" aria-label="Следующее фото">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- ============================================================ ПЛАВАЮЩАЯ КНОПКА -->
+<div class="fab" id="fab">
+  <div class="fab__menu">
+    <a class="fab__item fab__item--brothers" data-wa="brothers" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.4"/><path d="M4.8 20.5c0-3.6 3.2-6.2 7.2-6.2s7.2 2.6 7.2 6.2"/></svg>
+      Заказ для братьев
+    </a>
+    <a class="fab__item fab__item--sisters" data-wa="sisters" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c-3 0-5 2.2-5 5.2 0 2.2.5 4 1.2 5.6h7.6c.7-1.6 1.2-3.4 1.2-5.6 0-3-2-5.2-5-5.2z"/><path d="M9.4 14c-.4 3 .3 5.2 2.6 6.8 2.3-1.6 3-3.8 2.6-6.8"/></svg>
+      Заказ для сестёр
+    </a>
+  </div>
+  <button class="fab__toggle" id="fabToggle" type="button" aria-label="Связаться в WhatsApp" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+  </button>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
